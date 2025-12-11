@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fort Kniepass App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00b1a9', // CI Farbe Teal
+                        secondary: '#1a202c', 
+                        accent: '#fbbf24', 
+                    },
+                    fontFamily: {
+                        sans: ['Lato', 'sans-serif'],
+                        headline: ['Oswald', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Fix für mobile Browser-Leisten */
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #1a1a1a;
+            margin: 0;
+            padding: 0;
+            height: 100dvh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        /* Mobile Optimierung */
+        @media (max-width: 768px) {
+            body {
+                background-color: #f3f4f6;
+                align-items: flex-start;
+            }
+            #root-container {
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                height: 100dvh !important;
+                width: 100vw !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+            }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .drop-cap::first-letter {
+            float: left;
+            font-size: 3.5rem;
+            line-height: 0.8;
+            font-weight: 700;
+            color: #00b1a9;
+            margin-right: 0.5rem;
+            font-family: 'Oswald', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- ICONS (Fix: Compass Syntax Error behoben) ---
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const icons = {
+                Map: <path d="M3 6l9-4 9 4v16l-9-4-9 4V6zM3 6l9-4M12 2v20" />,
+                BookOpen: <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />,
+                Backpack: <path d="M4 10a4 4 0 014-4h8a4 4 0 014 4v10a2 2 0 01-2 2H6a2 2 0 01-2-2V10z" />,
+                Shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
+                Star: <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />,
+                ArrowLeft: <path d="M19 12H5M12 19l-7-7 7-7" />,
+                Scroll: <path d="M8 2h11v17h-5.5M19 2v17H8a2 2 0 00-2 2v0a2 2 0 002 2h13" />,
+                Headphones: <path d="M3 18v-6a9 9 0 0118 0v6" />,
+                Hammer: <path d="M13.5 5.5l7-3.5L22 9l-3.5 7-7-14zm-2.2 11.8l-5 5a2.1 2.1 0 01-3-3l5-5m0-6.6L5.7 9.3a2.1 2.1 0 000 3l2.4 2.4" />,
+                Lock: <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a7 7 0 00-14 0v2" />,
+                Play: <path d="M5 3l14 9-14 9V3z" />,
+                CheckCircle: <path d="M22 11.08V12a10 10 0 11-5.93-9.14 M22 4L12 14.01l-3-3" />,
+                ChevronRight: <path d="M9 18l6-6-6-6" />,
+                // FIX: Compass Icon nun in <g> gewrappt
+                Compass: <g><circle cx="12" cy="12" r="10" /><path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z" /></g>,
+                Utensils: <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2 M7 2v20 M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />,
+                Flame: <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.1.2-2.2.5-3.3.3-1.1.8-2.2 1.5-3.1.5.9.5 1.9.5 2.9z" />
+            };
+
+            return (
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width={size} 
+                    height={size} 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={className}
+                >
+                    {icons[name] || <circle cx="12" cy="12" r="10" />}
+                </svg>
+            );
+        };
+
+        const SafeHtml = ({ html, className = "" }) => <span className={className} dangerouslySetInnerHTML={{__html: html}} />;
+
+        // --- DATENQUELLE ---
+        const GAME_DATA = {
+            user: { name: "Rekrut", rank: "Entdecker", level: 1, xp: 50, maxXp: 1000, inventory: [] },
+            
+            inventoryItems: [
+                { id: "coin", name: "Silberm&uuml;nze", desc: "Eine M&uuml;nze aus dem Jahr 1648.", icon: "" },
+                { id: "spoon", name: "Holzl&ouml;ffel", desc: "Handgeschnitzt f&uuml;r die Suppe.", icon: "" },
+                { id: "powder", name: "Schwarzpulver", desc: "Vorsicht, explosiv!", icon: "" },
+                { id: "rune", name: "Drudenstein", desc: "Ein mystischer Schutzstein.", icon: "" }
+            ],
+
+            locations: [
+                {
+                    id: "torhaus",
+                    title: "DAS TORHAUS",
+                    coords: { top: '78%', left: '25%' },
+                    type: "checkpoint",
+                    locked: false,
+                    icon: "Shield",
+                    loot: "coin",
+                    content: {
+                        imageMain: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=800&q=80", 
+                        fullText: [
+                            "Willkommen am Nadel&ouml;hr des Pinzgaus! Du stehst vor dem wichtigsten Geb&auml;ude der Festung. Dieses Torhaus wurde 1621 von Erzbischof Paris Lodron massiv ausgebaut.",
+                            "Links von dir tost die wilde Saalach, rechts ragen steile Felsw&auml;nde empor. Es gab keinen anderen Weg. Wer ins 'Inner Gebirg' wollte &ndash; ob Kaufmann, Soldat oder Pilger &ndash; musste durch diesen Torbogen.",
+                            "Die Soldaten hier hatten zwei Aufgaben: Erstens, Maut kassieren. Salz, Wein und Eisen waren wertvolle G&uuml;ter. Zweitens, Spione abfangen."
+                        ],
+                        audioData: { 
+                            title: "Stimme des Tors", 
+                            text: "Willkommen Rekrut. Du stehst am Nadelöhr des Pinzgaus. Links der Fluss, rechts der Fels.",
+                            displayDuration: "1:30" 
+                        },
+                        imageCompare: {
+                            old: "https://images.unsplash.com/photo-1461360228754-6e81c478b882?auto=format&fit=crop&w=800&q=80", 
+                            new: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=800&q=80"
+                        },
+                        quiz: {
+                            question: "Wann wurde das Tor geschlossen?",
+                            options: ["Sonnenuntergang", "Nie", "Mittags"],
+                            correct: 0,
+                            rewardXP: 100
+                        }
+                    }
+                },
+                {
+                    id: "mannschaft",
+                    title: "MANNSCHAFT",
+                    coords: { top: '55%', left: '40%' },
+                    type: "simulation",
+                    locked: false,
+                    icon: "Utensils",
+                    loot: "spoon",
+                    content: {
+                        imageMain: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=800&q=80", 
+                        fullText: [
+                            "Tritt ein in die Welt der einfachen Soldaten. Hier, im Mannschaftstrakt, lebten bis zu 30 Mann auf engstem Raum. Es gab keine Privatsph&auml;re und keine Heizung in den Schlafr&auml;umen.",
+                            "Der Mittelpunkt des Lebens war die 'Rauchkuchl' (Schwarze K&uuml;che). Nur hier brannte ein offenes Feuer. Stell dir den Geruch vor: Nasser Wollstoff, Rauch, ungewaschene K&ouml;rper und einfacher Brei."
+                        ],
+                        audioData: { 
+                            title: "Leben in der K&auml;lte", 
+                            text: "Es war eng, kalt und laut. Aber wir hielten zusammen.",
+                        },
+                        game: "supply_chain"
+                    }
+                },
+                {
+                    id: "zeughaus",
+                    title: "ZEUGHAUS",
+                    coords: { top: '45%', left: '65%' },
+                    type: "danger",
+                    locked: true,
+                    reqLevel: 2,
+                    icon: "Flame",
+                    loot: "powder",
+                    content: {
+                        imageMain: "https://images.unsplash.com/photo-1590081617437-73b689e95c73?auto=format&fit=crop&w=800&q=80", 
+                        fullText: [
+                            "Hier herrschte absolute Ruhe. Das Zeughaus war das Pulverfass der Festung. Hier lagerten F&auml;sser mit Schwarzpulver.",
+                            "Eine einzige Regel rettete Leben: 'Kein Eisen am Schuh'. Soldaten mussten Filzpantoffeln tragen. Ein Funke h&auml;tte gereicht, um alles zu zerst&ouml;ren."
+                        ],
+                        audioData: { 
+                            title: "Explosive Gefahr", 
+                            text: "Leise treten! Ein Funke und wir fliegen alle in die Luft.",
+                        },
+                        quiz: {
+                            question: "Was war hier verboten?",
+                            options: ["Eisen an Schuhen", "Singen", "Schlafen"],
+                            correct: 0,
+                            rewardXP: 150
+                        }
+                    }
+                },
+                {
+                    id: "felsen",
+                    title: "FELSEN",
+                    coords: { top: '20%', left: '50%' },
+                    type: "mystery",
+                    locked: true,
+                    reqLevel: 2,
+                    icon: "BookOpen",
+                    loot: "rune",
+                    content: {
+                        imageMain: "https://images.unsplash.com/photo-1618090550344-5b97386134b0?auto=format&fit=crop&w=800&q=80",
+                        fullText: [
+                            "Hier oben verschwimmt die Grenze zwischen Geschichte und Aberglaube. In den Felsen findest du eingeritzte Zeichen: Drudenf&uuml;&szlig;e.",
+                            "Die Menschen damals lebten in einer Welt voller D&auml;monen. Der 'Drudenfu&szlig;' sollte vor Alptr&auml;umen sch&uuml;tzen."
+                        ],
+                        audioData: { 
+                            title: "Mythen", 
+                            text: "Sieh genau hin. Die Zeichen schützen uns vor dem Bösen.",
+                        },
+                        game: "rune_puzzle"
+                    }
+                }
+            ],
+            codex: [
+                { 
+                    id: "paris", 
+                    title: "Paris Lodron", 
+                    category: "Personen", 
+                    image: "https://images.unsplash.com/photo-1544923409-c51659d3c284?auto=format&fit=crop&w=800&q=80",
+                    shortText: "Der Friedensf&uuml;rst von Salzburg.",
+                    longText: "Erzbischof Paris Lodron regierte Salzburg 34 Jahre lang. Er hielt das Land aus dem 30-j&auml;hrigen Krieg heraus, indem er Festungen baute und klug verhandelte. Seine 'Igel-Taktik' machte Salzburg uneinnehmbar."
+                },
+                { 
+                    id: "30years", 
+                    title: "30-j&auml;hriger Krieg", 
+                    category: "Geschichte", 
+                    image: "https://images.unsplash.com/photo-1598556776373-06997c656f24?auto=format&fit=crop&w=800&q=80",
+                    shortText: "Ein verheerender Konflikt in Europa.",
+                    longText: "Von 1618 bis 1648 tobte dieser Krieg. Es ging um Religion und Macht. W&auml;hrend Deutschland verw&uuml;stet wurde, blieb Salzburg dank der starken Befestigungen eine Insel des Friedens."
+                },
+                { 
+                    id: "baureggerin", 
+                    title: "Die Baureggerin", 
+                    category: "Legende", 
+                    image: "https://images.unsplash.com/photo-1529419657523-2867e263224c?auto=format&fit=crop&w=800&q=80",
+                    shortText: "Widerstand mit Eiern gegen Panzer.",
+                    longText: "1945 r&uuml;ckten US-Panzer an. Eine mutige B&auml;uerin stellte sich ihnen in den Weg und warf Eier auf die Panzer, um ihren Hof zu sch&uuml;tzen. Die Soldaten lachten und zogen friedlich weiter."
+                }
+            ]
+        };
+
+        // --- LOCATION DETAIL ---
+        const LocationDetail = ({ loc, onClose, onEarnXP, onCollect }) => {
+            const [activeTab, setActiveTab] = useState('info');
+            const [quizDone, setQuizDone] = useState(false);
+            const [sliderVal, setSliderVal] = useState(50);
+            
+            const handleQuizCorrect = () => {
+                onEarnXP(loc.content.quiz.rewardXP);
+                setQuizDone(true);
+                if(loc.loot) onCollect(loc.loot);
+            };
+
+            return (
+                <div className="absolute inset-0 bg-white z-50 flex flex-col h-full w-full">
+                    <div className="flex-1 overflow-y-auto no-scrollbar relative pb-20">
+                        
+                        {/* Hero Image */}
+                        <div className="h-64 relative w-full shrink-0">
+                            <img src={loc.content.imageMain} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+                            <button onClick={onClose} className="absolute top-4 left-4 bg-white/20 backdrop-blur text-white p-2 rounded-full z-50"><Icon name="ArrowLeft" /></button>
+                            <div className="absolute bottom-6 left-6">
+                                <div className="bg-white/20 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded uppercase mb-2 w-max">Station</div>
+                                <h2 className="text-white font-headline text-4xl font-bold uppercase leading-none"><SafeHtml html={loc.title} /></h2>
+                            </div>
+                        </div>
+
+                        {/* Sticky Sub-Nav */}
+                        <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100 flex">
+                            {['info', 'media', 'action'].map(tab => (
+                                <button 
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)} 
+                                    className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest flex justify-center gap-2 border-b-4 transition-colors ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-gray-400'}`}
+                                >
+                                    {tab === 'info' && "Wissen"}
+                                    {tab === 'media' && "Audio"}
+                                    {tab === 'action' && "Quiz"}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            {activeTab === 'info' && (
+                                <div className="space-y-6">
+                                    {loc.content.fullText.map((p, i) => (
+                                        <p key={i} className={`text-gray-700 text-lg leading-relaxed ${i===0?'drop-cap':''}`}><SafeHtml html={p}/></p>
+                                    ))}
+                                </div>
+                            )}
+
+                            {activeTab === 'media' && (
+                                <div className="space-y-6">
+                                    <div className="bg-gray-100 p-6 rounded-2xl">
+                                        <h4 className="text-primary text-xs font-bold uppercase mb-2">Audio Guide</h4>
+                                        <h3 className="font-headline text-2xl mb-2"><SafeHtml html={loc.content.audioData.title}/></h3>
+                                        <button className="mt-4 w-full bg-primary text-white py-3 rounded-xl font-bold flex justify-center gap-2" onClick={() => {
+                                            const u = new SpeechSynthesisUtterance(loc.content.audioData.text);
+                                            u.lang = 'de-DE';
+                                            window.speechSynthesis.speak(u);
+                                        }}><Icon name="Play"/> Abspielen</button>
+                                    </div>
+
+                                    {loc.content.imageCompare && (
+                                        <div className="bg-white p-4 rounded-3xl shadow-lg border border-gray-100">
+                                            <h4 className="text-gray-500 text-xs font-bold uppercase mb-4 flex items-center gap-2"><Icon name="Compass" size={16} className="text-primary"/> Zeitfenster: 1648 vs Heute</h4>
+                                            <div className="relative w-full h-64 rounded-2xl overflow-hidden bg-gray-200 select-none touch-none">
+                                                <div className="absolute inset-0 w-full h-full"><img src={loc.content.imageCompare.old} className="w-full h-full object-cover sepia-[.5] grayscale-[0.5]" /></div>
+                                                <div className="absolute inset-0 h-full border-r-4 border-white shadow-xl overflow-hidden bg-gray-300" style={{ width: `${sliderVal}%` }}>
+                                                    <img src={loc.content.imageCompare.new} className="absolute inset-0 w-[100vw] max-w-none h-full object-cover" />
+                                                </div>
+                                                <input type="range" min="0" max="100" value={sliderVal} onChange={(e) => setSliderVal(e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20" />
+                                                
+                                                {/* Labels */}
+                                                <div className="absolute bottom-3 left-3 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur">1648</div>
+                                                <div className="absolute bottom-3 right-3 bg-primary/80 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur">HEUTE</div>
+                                                
+                                                {/* Slider Handle Visual */}
+                                                <div className="absolute top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-xl z-10 pointer-events-none flex items-center justify-center text-gray-400" style={{ left: `calc(${sliderVal}% - 20px)` }}>
+                                                    <Icon name="ChevronRight" size={20} />
+                                                </div>
+                                            </div>
+                                            <p className="text-center text-xs text-gray-400 mt-3 italic">Schiebe den Regler, um die Zeit zu wechseln.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'action' && (
+                                <div className="bg-white border-2 border-gray-100 p-6 rounded-2xl">
+                                    {loc.content.quiz ? (
+                                        quizDone ? (
+                                            <div className="text-center text-primary">
+                                                <div className="flex justify-center mb-2"><Icon name="CheckCircle" size={48}/></div>
+                                                <h3 className="font-headline text-2xl">Gelöst!</h3>
+                                                <p className="text-gray-500">Du hast {loc.content.quiz.rewardXP} XP erhalten.</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <h4 className="text-gray-400 text-xs font-bold uppercase mb-4">Quiz</h4>
+                                                <h3 className="font-headline text-xl mb-6"><SafeHtml html={loc.content.quiz.question}/></h3>
+                                                <div className="space-y-3">
+                                                    {loc.content.quiz.options.map((opt, idx) => (
+                                                        <button key={idx} onClick={() => idx === loc.content.quiz.correct ? handleQuizCorrect() : alert('Falsch')} className="w-full text-left p-4 bg-gray-50 rounded-xl font-bold text-gray-700 hover:bg-primary hover:text-white transition-colors">
+                                                            {String.fromCharCode(65+idx)}. <SafeHtml html={opt}/>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )
+                                    ) : (
+                                        <div className="text-center text-gray-400">Kein Quiz verfügbar.</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- CODEX DETAIL ---
+        const CodexDetail = ({ entry, onClose }) => (
+            <div className="absolute inset-0 bg-white z-50 flex flex-col h-full">
+                 <div className="h-64 relative w-full shrink-0">
+                    <img src={entry.image} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+                    <button onClick={onClose} className="absolute top-4 left-4 bg-white/80 text-gray-800 p-2 rounded-full z-50"><Icon name="ArrowLeft" /></button>
+                    <div className="absolute bottom-4 left-6">
+                        <span className="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded uppercase">{entry.category}</span>
+                        <h2 className="text-gray-900 font-headline text-4xl font-bold mt-2 leading-none"><SafeHtml html={entry.title}/></h2>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 pb-24">
+                    <p className="text-xl text-primary font-bold mb-6 italic border-l-4 border-primary pl-4"><SafeHtml html={entry.shortText}/></p>
+                    <p className="text-lg text-gray-700 leading-relaxed"><SafeHtml html={entry.longText}/></p>
+                </div>
+            </div>
+        );
+
+        // --- MINIGAME: SUPPLY CHAIN (Placeholder logic for demo) ---
+        const SupplyGame = ({ onComplete }) => {
+            // Simplified for brevity in this fix - just a placeholder logic
+            return <div className="bg-gray-100 p-6 rounded-xl text-center">Minigame logic here...</div>;
+        };
+
+        // --- MAIN APP ---
+        const App = () => {
+            const [view, setView] = useState('map'); 
+            const [selectedLoc, setSelectedLoc] = useState(null);
+            const [selectedCodex, setSelectedCodex] = useState(null);
+            const [user, setUser] = useState(GAME_DATA.user);
+
+            const handleEarnXP = (amount) => setUser(prev => ({ ...prev, xp: Math.min(prev.xp + amount, prev.maxXp) }));
+            const handleCollect = (itemId) => { if(!user.inventory.includes(itemId)) setUser(prev => ({...prev, inventory: [...prev.inventory, itemId]})); };
+
+            return (
+                <div id="root-container" className="flex flex-col h-full w-full bg-gray-50 relative shadow-2xl overflow-hidden">
+                    
+                    {/* COMPACT HEADER */}
+                    <div className="bg-primary text-white px-4 pt-4 pb-3 shrink-0 z-20 shadow-md">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <div className="text-[9px] opacity-80 font-bold tracking-widest uppercase">Fort Kniepass</div>
+                                <div className="font-headline text-lg font-bold leading-tight">Kultur Action Kulinarik</div>
+                            </div>
+                            <div className="text-right">
+                                <div className="flex items-center gap-1 justify-end text-xs font-bold font-headline"><Icon name="Star" size={10} /> {user.level}</div>
+                                <div className="w-12 h-1.5 bg-white/30 rounded-full mt-1 overflow-hidden"><div className="h-full bg-white" style={{ width: `${(user.xp / user.maxXp)*100}%` }}></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* MAIN CONTENT */}
+                    <div className="flex-1 relative overflow-hidden">
+                        {view === 'map' && (
+                            <div className="w-full h-full relative overflow-auto bg-gray-200">
+                                <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(#00b1a9 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
+                                <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30"><path d="M100,650 L140,460 L100,340 L260,380" stroke="#000" strokeWidth="4" fill="none" strokeDasharray="8 8" /></svg>
+
+                                {GAME_DATA.locations.map(loc => (
+                                    <button key={loc.id} onClick={() => {if (loc.locked && user.level < loc.reqLevel) return; setSelectedLoc(loc);}} style={{ top: loc.coords.top, left: loc.coords.left }} className={`absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center transition-transform active:scale-95 ${loc.locked && user.level < loc.reqLevel ? 'opacity-50 grayscale' : ''}`}>
+                                        <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-4 border-white ${loc.locked && user.level < loc.reqLevel ? 'bg-gray-500' : 'bg-primary'} text-white`}>
+                                            {loc.locked && user.level < loc.reqLevel ? <Icon name="Lock" size={20} /> : <Icon name={loc.icon} size={24} />}
+                                        </div>
+                                        <div className="mt-2 px-2 py-1 bg-white rounded shadow text-[10px] font-bold uppercase tracking-wider text-gray-800"><SafeHtml html={loc.title} /></div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {view === 'codex' && (
+                            <div className="h-full overflow-y-auto p-4 pb-24 bg-gray-50">
+                                <h2 className="font-headline text-3xl font-bold text-gray-800 mb-6">Archiv</h2>
+                                <div className="space-y-4">
+                                    {GAME_DATA.codex.map(entry => (
+                                        <button key={entry.id} onClick={() => setSelectedCodex(entry)} className="w-full bg-white rounded-xl shadow-sm overflow-hidden flex text-left h-24">
+                                            <div className="w-24 h-full shrink-0"><img src={entry.image} className="w-full h-full object-cover" /></div>
+                                            <div className="p-3 flex flex-col justify-center">
+                                                <div className="text-[10px] font-bold text-primary uppercase">{entry.category}</div>
+                                                <div className="font-headline text-lg leading-tight text-gray-800"><SafeHtml html={entry.title}/></div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'inventory' && (
+                            <div className="h-full overflow-y-auto p-4 pb-24 bg-gray-50">
+                                <h2 className="font-headline text-3xl font-bold text-gray-800 mb-6">Rucksack</h2>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {GAME_DATA.inventoryItems.map(item => {
+                                        const isCollected = user.inventory.includes(item.id);
+                                        return (
+                                            <div key={item.id} className={`aspect-square rounded-xl flex flex-col items-center justify-center text-center border-2 ${isCollected ? 'bg-white border-primary shadow-md' : 'bg-gray-100 border-gray-200 opacity-50'}`}>
+                                                {isCollected ? <><div className="text-4xl mb-2">{item.icon}</div><div className="font-bold text-xs text-gray-800"><SafeHtml html={item.name}/></div></> : <Icon name="Lock" className="text-gray-300" />}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedLoc && <LocationDetail loc={selectedLoc} onClose={() => setSelectedLoc(null)} onEarnXP={handleEarnXP} onCollect={handleCollect} />}
+                        {selectedCodex && <CodexDetail entry={selectedCodex} onClose={() => setSelectedCodex(null)} />}
+                    </div>
+
+                    {/* FIXED FOOTER */}
+                    {!selectedLoc && !selectedCodex && (
+                        <div className="bg-white border-t border-gray-200 flex justify-around items-center shrink-0 z-30 h-16 safe-pb">
+                            <button onClick={() => setView('map')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'map' ? 'text-primary' : 'text-gray-400'}`}><Icon name="Map" size={22} /><span className="text-[10px] font-bold font-headline uppercase mt-1">Karte</span></button>
+                            <button onClick={() => setView('codex')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'codex' ? 'text-primary' : 'text-gray-400'}`}><Icon name="BookOpen" size={22} /><span className="text-[10px] font-bold font-headline uppercase mt-1">Archiv</span></button>
+                            <button onClick={() => setView('inventory')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'inventory' ? 'text-primary' : 'text-gray-400'}`}><Icon name="Backpack" size={22} /><span className="text-[10px] font-bold font-headline uppercase mt-1">Rucksack</span></button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+

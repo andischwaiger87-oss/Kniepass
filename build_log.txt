@@ -1,0 +1,28 @@
+
+> festung-kniepass-app@1.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 31 modules transformed.
+x Build failed in 1.24s
+error during build:
+src/main.jsx (3:7): "default" is not exported by "src/App.jsx", imported by "src/main.jsx".
+file: C:/Users/Andi/Unken Kniepass/src/main.jsx:3:7
+
+1: import React from 'react'
+2: import ReactDOM from 'react-dom/client'
+3: import App from './App.jsx'
+          ^
+4: import './index.css'
+
+    at getRollupError (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at Module.error (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/node-entry.js:16956:16)
+    at Module.traceVariable (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/node-entry.js:17412:29)
+    at ModuleScope.findVariable (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/node-entry.js:15076:39)
+    at Identifier.bind (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/node-entry.js:5423:40)
+    at CallExpression.bind (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/node-entry.js:2809:28)
+    at CallExpression.bind (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/node-entry.js:12123:15)
+    at Property.bind (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/node-entry.js:2813:23)
+    at ObjectExpression.bind (file:///C:/Users/Andi/Unken%20Kniepass/node_modules/rollup/dist/es/shared/node-entry.js:2809:28)
