@@ -23,13 +23,13 @@ const TimelineItem = ({ item, index, onSelect }) => {
                     <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90" />
                 </div>
 
-                <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-end">
                     <div className="flex justify-between items-start mb-auto">
-                        <span className="text-7xl font-black text-white/20 drop-shadow-lg">
+                        <span className="text-5xl sm:text-7xl font-black text-white/20 drop-shadow-lg">
                             {item.year}
                         </span>
-                        <div className="p-4 rounded-full bg-black/30 backdrop-blur-md border border-white/10">
-                            <item.icon className="w-8 h-8 text-white" />
+                        <div className="p-3 sm:p-4 rounded-full bg-black/30 backdrop-blur-md border border-white/10">
+                            <item.icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                         </div>
                     </div>
 
@@ -38,17 +38,17 @@ const TimelineItem = ({ item, index, onSelect }) => {
                         whileInView={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
                     >
-                        <div className="h-1 w-20 bg-amber-500 mb-6 rounded-full" />
-                        <h3 className="text-4xl md:text-5xl font-bold text-white mb-2 leading-tight">{item.title}</h3>
-                        <p className="text-xl text-amber-400 mb-4 font-medium tracking-wide">{item.subtitle}</p>
+                        <div className="h-1 w-16 sm:w-20 bg-amber-500 mb-4 sm:mb-6 rounded-full" />
+                        <h3 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2 leading-tight">{item.title}</h3>
+                        <p className="text-lg sm:text-xl text-amber-400 mb-3 sm:mb-4 font-medium tracking-wide">{item.subtitle}</p>
 
-                        <p className="text-slate-200 text-lg leading-relaxed line-clamp-3 mb-6 max-w-lg">
+                        <p className="text-base sm:text-lg text-slate-200 leading-relaxed line-clamp-3 mb-4 sm:mb-6 max-w-lg">
                             {item.description}
                         </p>
 
                         <div className="flex items-center text-white group-hover:text-amber-400 transition-colors">
-                            <span className="uppercase tracking-widest text-sm font-bold">Entdecken</span>
-                            <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            <span className="uppercase tracking-widest text-xs sm:text-sm font-bold">Entdecken</span>
+                            <ChevronRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                         </div>
                     </motion.div>
                 </div>

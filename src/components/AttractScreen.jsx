@@ -11,17 +11,17 @@ const AttractScreen = ({ onStart }) => {
                 transition={{ duration: 1.5, ease: "easeOut" }}
                 className="mb-8"
             >
-                <h1 className="text-6xl md:text-8xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 drop-shadow-2xl">
+                <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 drop-shadow-2xl">
                     FESTUNG<br />KNIEPASS
                 </h1>
-                <div className="h-2 w-32 bg-amber-500 mx-auto mt-6 rounded-full" />
+                <div className="h-2 w-24 sm:w-32 bg-amber-500 mx-auto mt-6 rounded-full" />
             </motion.div>
 
             <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 1 }}
-                className="text-xl md:text-2xl text-slate-300 max-w-2xl font-light tracking-wide mb-16"
+                className="text-lg sm:text-xl md:text-2xl text-slate-300 max-w-2xl font-light tracking-wide mb-16 px-4"
             >
                 Erlebe 400 Jahre Geschichte.
                 <br />
